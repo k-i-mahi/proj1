@@ -1,0 +1,129 @@
+PROMPTS FOR CHANGES
+Prompt 1: Update User Model
+File: backend/models/User.js
+
+Add these fields after the role field:
+
+gender (String, enum: ['male', 'female', 'other', null], default: null)
+dateOfBirth (Date, default: null)
+profession (String, trim, maxlength 100, default: '')
+Prompt 2: Update Auth Routes Validation
+File: backend/routes/auth.js
+
+Add 3 new body validations to the /register route after the role validation:
+
+Validate gender - optional, must be 'male', 'female', or 'other'
+Validate dateOfBirth - optional, must be ISO8601 date
+Validate profession - optional, trim, max 100 characters
+Prompt 3: Update Auth Controller Register
+File: backend/controllers/authController.js
+
+In the register function:
+
+Extract gender, dateOfBirth, profession from req.body
+Pass these fields to User.create() (use defaults if not provided)
+Include these fields in the response user object
+Prompt 4: Update Auth Controller Login
+File: backend/controllers/authController.js
+
+In the login function:
+
+Add gender, dateOfBirth, profession to the response user object
+Prompt 5: Update Auth Controller getMe
+File: backend/controllers/authController.js
+
+In the getMe function:
+
+Add gender, dateOfBirth, profession to the response user object
+
+Prompt 6: Update User Controller updateUser
+File: backend/controllers/userController.js
+
+In the updateUser function:
+
+Extract gender, dateOfBirth, profession from req.body
+Add them to the updateData object if provided
+Include validation for these fields
+
+
+Prompt 7: Add register Function to AuthContext
+File: frontend/src/context/AuthContext.js
+
+Create a new register async function that:
+
+Calls authService.register(userData)
+Extracts user and token from response
+Sets user state, isAuthenticated to true, clears errors
+Saves user and token to localStorage
+Throws error on failure with proper error handling
+
+
+Prompt 8: Update Register Form State
+File: frontend/src/pages/Register.js
+
+Expand the initial formData state to include:
+
+gender: ''
+dateOfBirth: ''
+profession: ''
+
+
+Prompt 9: Add Gender Field to Register Form
+File: frontend/src/pages/Register.js
+
+Add a new form section with a select dropdown for gender with options:
+
+"Select Gender"
+"Male"
+"Female"
+"Other"
+Prompt 10: Add Date of Birth Field to Register Form
+File: frontend/src/pages/Register.js
+
+Add a date input field for dateOfBirth (type="date")
+
+Prompt 11: Add Profession Field to Register Form
+File: frontend/src/pages/Register.js
+
+Add a text input field for profession with placeholder "e.g., Software Engineer"
+
+Prompt 12: Update Register Form Submission
+File: frontend/src/pages/Register.js
+
+In the handleSubmit function, include these fields when calling register():
+
+gender: formData.gender || null
+dateOfBirth: formData.dateOfBirth || null
+profession: formData.profession || ''
+Prompt 13: Create Auth.css File
+File: frontend/src/pages/Auth.css
+
+Create a new CSS file with modern styling:
+
+Gradient background (purple gradient)
+Card-based design with shadow
+Form sections with titles
+Smooth animations and transitions
+Responsive grid layout for two-column forms
+Modern button styles with hover effects
+Alert styling for error messages
+Prompt 14: Update Register.js UI
+File: frontend/src/pages/Register.js
+
+Restructure the form with:
+
+Import Auth.css
+Use .auth-container, .auth-card, .auth-form classes
+Organize fields into .form-section groups (Basic Info, Personal Details, Security, Role & Location)
+Use .form-row for side-by-side fields
+Apply modern button styles
+Prompt 15: Update Login.js UI
+File: frontend/src/pages/Login.js
+
+Restructure the form with:
+
+Import Auth.css
+Use the same modern styling classes as Register
+Keep it simple with just email and password
+Apply modern button and card styles
+That's all the prompts! Each one tells you exactly what needs to be changed without changing the files.
