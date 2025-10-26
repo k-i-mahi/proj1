@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import issueService from '../services/issueService';
 import categoryService from '../services/categoryService';
 import './Home.css';
 
 const Home = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [stats, setStats] = useState({
     totalIssues: 0,
     resolved: 0,
@@ -16,7 +15,6 @@ const Home = () => {
   });
   const [recentIssues, setRecentIssues] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadHomeData();
@@ -49,8 +47,6 @@ const Home = () => {
       setCategories(categoriesResponse.data || []);
     } catch (err) {
       console.error('Load home data error:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -313,41 +309,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <h3>🏙️ Civita</h3>
-            <p>Making communities better, one issue at a time.</p>
-          </div>
 
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Product</h4>
-              <Link to="/features">Features</Link>
-              <Link to="/pricing">Pricing</Link>
-              <Link to="/about">About</Link>
-            </div>
-
-            <div className="footer-column">
-              <h4>Support</h4>
-              <Link to="/help">Help Center</Link>
-              <Link to="/contact">Contact</Link>
-              <Link to="/faq">FAQ</Link>
-            </div>
-
-            <div className="footer-column">
-              <h4>Legal</h4>
-              <Link to="/privacy">Privacy</Link>
-              <Link to="/terms">Terms</Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p>&copy; 2024 Civita. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

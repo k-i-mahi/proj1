@@ -265,9 +265,9 @@ const Login = () => {
                 issues. It's simple, effective, and makes a real difference."
               </p>
               <div className="testimonial-author">
-                <div className="author-avatar">JD</div>
+                <div className="author-avatar">KIM</div>
                 <div className="author-info">
-                  <div className="author-name">John Doe</div>
+                  <div className="author-name">Khadimul Islam Mahi</div>
                   <div className="author-role">Community Leader</div>
                 </div>
               </div>

@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import issueService from '../services/issueService';
-import categoryService from '../services/categoryService';
-import authService from '../services/authService';
 import dataService from '../services/dataService';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -14,7 +11,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, getUserStats } = useAuth(); // Get getUserStats from context
-  const { success, error: showError } = useToast();
+  const { error: showError } = useToast();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -31,11 +28,7 @@ const Dashboard = () => {
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [showIssueModal, setShowIssueModal] = useState(false);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [user]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -128,7 +121,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, getUserStats, showError]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const handleIssueClick = (issue) => {
     setSelectedIssue(issue);

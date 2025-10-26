@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import { useToast } from '../context/ToastContext';
-import dataService from '../services/dataService';
 import Avatar from '../components/Avatar';
 import Badge from '../components/Badge';
 import Feedback from '../components/Feedback';

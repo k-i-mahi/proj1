@@ -7,6 +7,7 @@ import Badge from '../components/Badge';
 import Avatar from '../components/Avatar';
 import Feedback from '../components/Feedback';
 import Modal, { ConfirmDialog } from '../components/Modal';
+import IssueInteractions from '../components/IssueInteractions';
 import './IssueDetail.css';
 
 const IssueDetail = () => {
@@ -18,8 +19,6 @@ const IssueDetail = () => {
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
-  const [commentText, setCommentText] = useState('');
-  const [isCommenting, setIsCommenting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
@@ -108,27 +107,10 @@ const IssueDetail = () => {
     }
   };
 
-  // Add comment
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    if (!user) return showError('Please login to comment');
-    try {
-      setIsCommenting(true);
-      const response = await issueService.addComment(id, commentText.trim());
-      // Backend returns the new comment, not the full issue
-      // So we need to reload the issue
-      await loadIssueDetails();
-      setCommentText('');
-      success('Comment added');
-    } catch (err) {
-      console.error('Add comment error:', err);
-      showError(
-        err?.response?.data?.message || err?.message || 'Failed to add comment',
-      );
-    } finally {
-      setIsCommenting(false);
-    }
+  // Handle interaction updates
+  const handleInteractionUpdate = (type, data) => {
+    // Refresh issue data when interactions change
+    loadIssueDetails();
   };
 
   // Status change
@@ -370,74 +352,27 @@ const IssueDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* Issue Interactions Component */}
+              <IssueInteractions 
+                issue={issue} 
+                onInteractionUpdate={handleInteractionUpdate}
+                showComments={false}
+                showVoting={true}
+                showFollow={true}
+              />
             </div>
           )}
 
           {activeTab === 'comments' && (
             <div className="comments-tab">
-              {user && (
-                <form onSubmit={handleAddComment} className="comment-form">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Add a comment..."
-                    rows="4"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isCommenting || !commentText.trim()}
-                    className="btn btn-primary"
-                  >
-                    {isCommenting ? 'Posting...' : 'Post Comment'}
-                  </button>
-                </form>
-              )}
-
-              {!user && (
-                <div className="login-prompt">
-                  <p>
-                    Please <Link to="/login">login</Link> to add comments
-                  </p>
-                </div>
-              )}
-
-              {issue.comments?.length === 0 ? (
-                <Feedback
-                  type="empty"
-                  title="No Comments"
-                  message="Be the first to comment on this issue"
-                />
-              ) : (
-                <div className="comments-list">
-                  {issue.comments?.map((c) => (
-                    <div key={c._id} className="comment-item">
-                      <Avatar
-                        src={c.user?.avatar}
-                        name={c.user?.name}
-                        size="medium"
-                      />
-                      <div className="comment-content">
-                        <div className="comment-header">
-                          <strong className="comment-author">
-                            {c.user?.name}
-                          </strong>
-                          <span className="comment-time">
-                            · {getTimeAgo(c.createdAt)}
-                          </span>
-                          {c.user?.role && (
-                            <Badge
-                              type="custom"
-                              value={c.user.role}
-                              size="small"
-                            />
-                          )}
-                        </div>
-                        <p className="comment-text">{c.commentText}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <IssueInteractions 
+                issue={issue} 
+                onInteractionUpdate={handleInteractionUpdate}
+                showComments={true}
+                showVoting={false}
+                showFollow={false}
+              />
             </div>
           )}
 

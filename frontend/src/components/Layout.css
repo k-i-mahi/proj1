@@ -1,0 +1,28 @@
+/* Layout Styles */
+
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content.with-navbar {
+  margin-top: 70px; /* Account for fixed navbar height */
+}
+
+.main-content.full-height {
+  margin-top: 0;
+}
+
+/* Ensure consistent spacing */
+@media (max-width: 768px) {
+  .main-content.with-navbar {
+    margin-top: 60px; /* Smaller navbar on mobile */
+  }
+}

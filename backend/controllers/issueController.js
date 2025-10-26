@@ -184,6 +184,17 @@ const createIssue = async (req, res) => {
       { path: 'category', select: 'name displayName icon color' },
     ]);
 
+    // Update category issue count
+    if (issue.category) {
+      await Category.findByIdAndUpdate(
+        issue.category._id,
+        { 
+          $inc: { 'metadata.issueCount': 1 },
+          $set: { 'metadata.lastUpdated': new Date() }
+        }
+      );
+    }
+
     // Log activity
     await Activity.create({
       user: req.user.id,
@@ -238,6 +249,7 @@ const updateIssue = async (req, res) => {
     }
 
     const updateData = { ...req.body };
+    const oldStatus = issue.status;
 
     // Update location if coordinates provided
     if (req.body.latitude && req.body.longitude) {
@@ -268,6 +280,33 @@ const updateIssue = async (req, res) => {
       { path: 'category', select: 'name displayName icon color' },
       { path: 'assignedTo', select: 'name avatar' },
     ]);
+
+    // Update category resolved count if status changed to/from resolved/closed
+    if (req.body.status && req.body.status !== oldStatus && issue.category) {
+      const newStatus = req.body.status;
+      const wasResolved = ['resolved', 'closed'].includes(oldStatus);
+      const isNowResolved = ['resolved', 'closed'].includes(newStatus);
+
+      if (!wasResolved && isNowResolved) {
+        // Issue was resolved
+        await Category.findByIdAndUpdate(
+          issue.category._id,
+          { 
+            $inc: { 'metadata.resolvedCount': 1 },
+            $set: { 'metadata.lastUpdated': new Date() }
+          }
+        );
+      } else if (wasResolved && !isNowResolved) {
+        // Issue was un-resolved
+        await Category.findByIdAndUpdate(
+          issue.category._id,
+          { 
+            $inc: { 'metadata.resolvedCount': -1 },
+            $set: { 'metadata.lastUpdated': new Date() }
+          }
+        );
+      }
+    }
 
     // Log activity
     await Activity.create({
@@ -316,6 +355,17 @@ const deleteIssue = async (req, res) => {
         success: false,
         message: 'Not authorized to delete this issue',
       });
+    }
+
+    // Update category issue count before deletion
+    if (issue.category) {
+      await Category.findByIdAndUpdate(
+        issue.category,
+        { 
+          $inc: { 'metadata.issueCount': -1 },
+          $set: { 'metadata.lastUpdated': new Date() }
+        }
+      );
     }
 
     await issue.deleteOne();

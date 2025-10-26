@@ -5,7 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { CategoryProvider } from './context/CategoryContext';
 import { IssueProvider } from './context/IssueContext';
 import { NotificationProvider } from './context/NotificationContext';
-import Navbar from './components/Navbar';
+import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { initializeServices } from './services';
@@ -104,8 +104,7 @@ function App() {
               <IssueProvider>
                 <NotificationProvider>
                   <div className="App">
-                    <Navbar />
-                    <main className="main-content">
+                    <Layout>
                       <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<Home />} />
@@ -200,7 +199,7 @@ function App() {
                         <Route path="/404" element={<NotFound />} />
                         <Route path="*" element={<Navigate to="/404" replace />} />
                       </Routes>
-                    </main>
+                    </Layout>
                   </div>
                 </NotificationProvider>
               </IssueProvider>

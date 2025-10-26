@@ -256,7 +256,7 @@ const Register = () => {
                         className={`form-input ${
                           validationErrors.name ? 'error' : ''
                         }`}
-                        placeholder="John Doe"
+                        placeholder="Khadimul Islam Mahi"
                         disabled={loading}
                       />
                     </div>

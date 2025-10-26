@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import issueService from '../services/issueService';
 import categoryService from '../services/categoryService';
@@ -12,7 +11,6 @@ import './IssueForm.css';
 
 const IssueForm = () => {
   const { id } = useParams(); // For editing existing issue
-  const { user } = useAuth();
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
 
