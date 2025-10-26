@@ -162,22 +162,22 @@ const IssueCard = ({ issue, onClick, viewMode = 'grid' }) => {
         {/* Engagement Stats */}
         <div className="issue-card-footer">
           <div className="engagement-stats">
-            <div className="stat-item upvotes" title={`${issue.stats?.upvotes || 0} upvotes`}>
-              <span className="stat-icon">�</span>
-              <span className="stat-value">{issue.stats?.upvotes || 0}</span>
+            <div className="stat-item upvotes" title={`${issue.votes?.upvotes?.length || 0} upvotes`}>
+              <span className="stat-icon">👍</span>
+              <span className="stat-value">{issue.votes?.upvotes?.length || 0}</span>
             </div>
-            <div className="stat-item comments" title={`${issue.stats?.commentCount || 0} comments`}>
-              <span className="stat-icon">�</span>
-              <span className="stat-value">{issue.stats?.commentCount || 0}</span>
+            <div className="stat-item comments" title={`${issue.comments?.length || 0} comments`}>
+              <span className="stat-icon">💬</span>
+              <span className="stat-value">{issue.comments?.length || 0}</span>
             </div>
-            <div className="stat-item views" title={`${issue.stats?.views || 0} views`}>
-              <span className="stat-icon">�️</span>
-              <span className="stat-value">{issue.stats?.views || 0}</span>
+            <div className="stat-item views" title={`${issue.views || 0} views`}>
+              <span className="stat-icon">👁️</span>
+              <span className="stat-value">{issue.views || 0}</span>
             </div>
-            {issue.stats?.followerCount > 0 && (
-              <div className="stat-item followers" title={`${issue.stats.followerCount} followers`}>
+            {issue.followers?.length > 0 && (
+              <div className="stat-item followers" title={`${issue.followers.length} followers`}>
                 <span className="stat-icon">⭐</span>
-                <span className="stat-value">{issue.stats.followerCount}</span>
+                <span className="stat-value">{issue.followers.length}</span>
               </div>
             )}
           </div>
