@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const mongoose = require('mongoose');
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -603,6 +604,8 @@ const reorderCategories = async (req, res) => {
     });
   }
 };
+
+
 
 module.exports = {
   getCategories,

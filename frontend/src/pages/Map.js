@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import categoryService from '../services/categoryService';
+import dataService from '../services/dataService';
 import MapView from '../components/MapView';
 import Feedback from '../components/Feedback';
 import './Map.css';
@@ -24,20 +25,43 @@ const Map = () => {
 
       console.log('📍 Loading categories for map...');
 
-      // Fetch only active categories, sorted by order
-      const response = await categoryService.getCategories({
+      // Use dataService for better caching and consistency
+      const response = await dataService.getCategories({
         isActive: 'true',
         sort: 'order',
       });
 
-      const categoryList = response?.data || [];
+      if (response.success) {
+        const categoryList = response.data || [];
 
-      console.log('✅ Categories loaded for map:', {
-        count: categoryList.length,
-        categories: categoryList,
-      });
+        console.log('✅ Categories loaded for map:', {
+          count: categoryList.length,
+          categories: categoryList,
+        });
 
-      setCategories(categoryList);
+        setCategories(categoryList);
+      } else {
+        console.warn('Failed to load categories via dataService:', response.message);
+        
+        // Fallback to categoryService
+        try {
+          const fallbackResponse = await categoryService.getCategories({
+            isActive: 'true',
+            sort: 'order',
+          });
+
+          const categoryList = fallbackResponse?.data || [];
+          setCategories(categoryList);
+        } catch (fallbackErr) {
+          console.error('❌ Fallback load categories error:', fallbackErr);
+          const errorMessage =
+            fallbackErr.response?.data?.message ||
+            fallbackErr.message ||
+            'Failed to load categories. Please try again.';
+          setError(errorMessage);
+          setCategories([]);
+        }
+      }
     } catch (err) {
       console.error('❌ Load categories error:', err);
 

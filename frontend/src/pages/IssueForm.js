@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import issueService from '../services/issueService';
 import categoryService from '../services/categoryService';
+import dataService from '../services/dataService';
 import PhotoUpload from '../components/PhotoUpload';
 import LocationPicker from '../components/LocationPicker';
 import Feedback from '../components/Feedback';
@@ -36,41 +37,81 @@ const IssueForm = () => {
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    loadCategories();
-    if (id) {
-      loadIssue();
-    }
-  }, [id]);
-
   const loadCategories = async () => {
     try {
-      const response = await categoryService.getCategories();
-      setCategories(response.data || []);
+      const response = await dataService.getCategories({ isActive: true });
+      if (response.success) {
+        setCategories(response.data || []);
+      } else {
+        console.warn('Failed to load categories:', response.message);
+        // Fallback to old service
+        try {
+          const fallbackResponse = await categoryService.getCategories();
+          setCategories(fallbackResponse.data || []);
+        } catch (fallbackError) {
+          console.error('Fallback load categories error:', fallbackError);
+          showError('Failed to load categories');
+        }
+      }
     } catch (error) {
       console.error('Load categories error:', error);
       showError('Failed to load categories');
     }
   };
 
+  useEffect(() => {
+    loadCategories();
+    if (id) {
+      loadIssue();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   const loadIssue = async () => {
     try {
       setInitialLoading(true);
-      const response = await issueService.getIssueById(id);
-      const issue = response.data;
+      const response = await dataService.getIssueById(id);
+      
+      if (response.success && response.data) {
+        const issue = response.data;
 
-      setFormData({
-        title: issue.title || '',
-        description: issue.description || '',
-        category: issue.category?._id || '',
-        priority: issue.priority || 'medium',
-        latitude: issue.location?.coordinates?.[1] || '', // coordinates are [lng, lat]
-        longitude: issue.location?.coordinates?.[0] || '',
-        address: issue.location?.address || '',
-        tags: issue.tags || [],
-      });
+        setFormData({
+          title: issue.title || '',
+          description: issue.description || '',
+          category: issue.category?._id || '',
+          priority: issue.priority || 'medium',
+          latitude: issue.location?.coordinates?.[1] || '', // coordinates are [lng, lat]
+          longitude: issue.location?.coordinates?.[0] || '',
+          address: issue.location?.address || '',
+          tags: issue.tags || [],
+        });
 
-      setExistingPhotos(issue.images || []);
+        setExistingPhotos(issue.images || []);
+      } else {
+        console.warn('Failed to load issue:', response.message);
+        // Fallback to old service
+        try {
+          const fallbackResponse = await issueService.getIssueById(id);
+          const issue = fallbackResponse.data;
+
+          setFormData({
+            title: issue.title || '',
+            description: issue.description || '',
+            category: issue.category?._id || '',
+            priority: issue.priority || 'medium',
+            latitude: issue.location?.coordinates?.[1] || '',
+            longitude: issue.location?.coordinates?.[0] || '',
+            address: issue.location?.address || '',
+            tags: issue.tags || [],
+          });
+
+          setExistingPhotos(issue.images || []);
+        } catch (fallbackError) {
+          console.error('Fallback load issue error:', fallbackError);
+          showError('Failed to load issue');
+          navigate('/issues');
+        }
+      }
     } catch (error) {
       console.error('Load issue error:', error);
       showError('Failed to load issue');

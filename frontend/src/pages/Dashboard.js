@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import issueService from '../services/issueService';
 import categoryService from '../services/categoryService';
-import authService from '../services/authService'; // This service is correct
+import authService from '../services/authService';
+import dataService from '../services/dataService';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Feedback from '../components/Feedback';
@@ -38,42 +39,92 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      // --- START FIX ---
-      // Load user stats
-      // getUserStats() from AuthContext returns the stats object directly
-      const statsResponse = await getUserStats();
-      setStats({
-        totalIssues: statsResponse.issues.totalReported || 0,
-        myIssues: statsResponse.issues.totalReported || 0,
-        resolved: statsResponse.issues.resolved || 0,
-        inProgress: statsResponse.issues.inProgress || 0,
-        open: statsResponse.issues.open || 0,
-      });
-      // --- END FIX ---
+      // Use batch requests for better performance
+      const requests = [
+        // User stats
+        { method: 'GET', endpoint: '/auth/stats', options: { useCache: true, cacheKey: 'user_stats' } },
+        // Recent issues
+        { method: 'GET', endpoint: '/issues', data: { limit: 6, sort: '-createdAt' }, options: { useCache: true, cacheKey: 'recent_issues' } },
+        // My issues
+        { method: 'GET', endpoint: '/issues', data: { reportedBy: user._id, limit: 5, sort: '-createdAt' }, options: { useCache: false } },
+        // Categories
+        { method: 'GET', endpoint: '/categories', data: { limit: 8, isActive: true }, options: { useCache: true, cacheKey: 'dashboard_categories' } }
+      ];
 
-      // Load recent issues (all)
-      const recentResponse = await issueService.getIssues({
-        limit: 6,
-        sort: '-createdAt',
-      });
-      setRecentIssues(recentResponse.data || []);
+      const [statsResponse, recentResponse, myIssuesResponse, categoriesResponse] = await dataService.batchRequests(requests);
 
-      // Load my issues
-      const myIssuesResponse = await issueService.getIssues({
-        reportedBy: user._id,
-        limit: 5,
-        sort: '-createdAt',
-      });
-      setMyIssues(myIssuesResponse.data || []);
+      // Process user stats
+      if (statsResponse.success && statsResponse.data) {
+        const statsData = statsResponse.data;
+        setStats({
+          totalIssues: statsData.issues?.totalReported || 0,
+          myIssues: statsData.issues?.totalReported || 0,
+          resolved: statsData.issues?.resolved || 0,
+          inProgress: statsData.issues?.inProgress || 0,
+          open: statsData.issues?.open || 0,
+        });
+      } else {
+        // Fallback: try to get stats from AuthContext
+        try {
+          const authStats = await getUserStats();
+          setStats({
+            totalIssues: authStats.issues?.totalReported || 0,
+            myIssues: authStats.issues?.totalReported || 0,
+            resolved: authStats.issues?.resolved || 0,
+            inProgress: authStats.issues?.inProgress || 0,
+            open: authStats.issues?.open || 0,
+          });
+        } catch (authError) {
+          console.warn('Could not load user stats:', authError);
+          setStats({
+            totalIssues: 0,
+            myIssues: 0,
+            resolved: 0,
+            inProgress: 0,
+            open: 0,
+          });
+        }
+      }
 
-      // Load categories
-      const categoriesResponse = await categoryService.getCategories({
-        limit: 8,
-      });
-      setCategories(categoriesResponse.data || []);
+      // Process recent issues
+      if (recentResponse.success) {
+        setRecentIssues(recentResponse.data || []);
+      } else {
+        console.warn('Failed to load recent issues:', recentResponse.message);
+        setRecentIssues([]);
+      }
+
+      // Process my issues
+      if (myIssuesResponse.success) {
+        setMyIssues(myIssuesResponse.data || []);
+      } else {
+        console.warn('Failed to load my issues:', myIssuesResponse.message);
+        setMyIssues([]);
+      }
+
+      // Process categories
+      if (categoriesResponse.success) {
+        setCategories(categoriesResponse.data || []);
+      } else {
+        console.warn('Failed to load categories:', categoriesResponse.message);
+        setCategories([]);
+      }
+
     } catch (err) {
       console.error('Load dashboard error:', err);
-      showError('Failed to load dashboard data');
+      showError('Failed to load dashboard data. Please refresh the page.');
+      
+      // Set default empty states
+      setStats({
+        totalIssues: 0,
+        myIssues: 0,
+        resolved: 0,
+        inProgress: 0,
+        open: 0,
+      });
+      setRecentIssues([]);
+      setMyIssues([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }

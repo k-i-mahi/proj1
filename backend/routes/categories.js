@@ -24,6 +24,11 @@ router.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Categories API is running' });
 });
 
+// @route   GET /api/categories/stats
+// @desc    Get statistics for all categories (alias for /stats/all)
+// @access  Public
+router.get('/stats', getAllCategoriesStats);
+
 // @route   GET /api/categories/stats/all
 // @desc    Get statistics for all categories
 // @access  Public

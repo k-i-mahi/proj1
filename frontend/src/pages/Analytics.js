@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import issueService from '../services/issueService';
-import categoryService from '../services/categoryService';
+import dataService from '../services/dataService';
 import Feedback from '../components/Feedback';
 import Badge from '../components/Badge';
 import Card from '../components/Card';
@@ -22,15 +21,18 @@ const Analytics = () => {
     try {
       setLoading(true);
 
-      // Load overall statistics
-      try {
-        const statsResponse = await issueService.getIssueStats();
-        console.log('📊 Issue stats response:', statsResponse);
+      // Use batch requests for better performance and consistency
+      const requests = [
+        { method: 'GET', endpoint: '/issues/stats', options: { useCache: true, cacheKey: 'analytics_issue_stats' } },
+        { method: 'GET', endpoint: '/categories/stats', options: { useCache: true, cacheKey: 'analytics_category_stats' } }
+      ];
 
-        // Extract data from response (handle both formats)
-        const statsData = statsResponse?.data || statsResponse;
+      const [issueStatsResponse, categoryStatsResponse] = await dataService.batchRequests(requests);
 
-        // Ensure we have the correct structure
+      // Process issue statistics
+      if (issueStatsResponse.success && issueStatsResponse.data) {
+        const statsData = issueStatsResponse.data;
+
         const formattedStats = {
           overall: {
             total: statsData?.overall?.total || 0,
@@ -45,35 +47,21 @@ const Analytics = () => {
         };
 
         setStats(formattedStats);
-      } catch (statsError) {
-        console.error('Issue stats error:', statsError);
-        // Set default stats structure if API fails
+      } else {
+        console.warn('Failed to load issue stats:', issueStatsResponse?.message);
         setStats({
-          overall: {
-            total: 0,
-            open: 0,
-            inProgress: 0,
-            resolved: 0,
-            closed: 0,
-          },
+          overall: { total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0 },
           byStatus: {},
           byPriority: {},
           byCategory: [],
         });
       }
 
-      // Load category statistics
-      try {
-        const categoryResponse = await categoryService.getAllCategoriesStats();
-        console.log('📂 Category stats response:', categoryResponse);
+      // Process category statistics
+      if (categoryStatsResponse.success && categoryStatsResponse.data) {
+        const categoryData = categoryStatsResponse.data;
 
-        // Extract data from response
-        const categoryData = categoryResponse?.data || [];
-
-        // Format category stats to include total count
-        const formattedCategories = (
-          Array.isArray(categoryData) ? categoryData : []
-        ).map((cat) => ({
+        const formattedCategories = (Array.isArray(categoryData) ? categoryData : []).map((cat) => ({
           _id: cat._id,
           id: cat._id,
           name: cat.name,
@@ -89,25 +77,50 @@ const Analytics = () => {
         }));
 
         setCategoryStats(formattedCategories);
-      } catch (categoryError) {
-        console.error('Category stats error:', categoryError);
+      } else {
+        console.warn('Failed to load category stats:', categoryStatsResponse?.message);
         setCategoryStats([]);
       }
 
-      // Mock trend data (replace with real API call if available)
-      setTrendData([
-        { period: 'Week 1', open: 45, resolved: 32, inProgress: 18 },
-        { period: 'Week 2', open: 52, resolved: 38, inProgress: 22 },
-        { period: 'Week 3', open: 48, resolved: 42, inProgress: 20 },
-        { period: 'Week 4', open: 55, resolved: 45, inProgress: 25 },
-      ]);
+      // Generate trend data based on time range
+      // In a real app, this would come from an analytics endpoint
+      const generateTrendData = (range) => {
+        const baseData = { open: 45, resolved: 32, inProgress: 18 };
+        const periods = range === 'week' ? 7 : range === 'month' ? 4 : range === 'quarter' ? 3 : 12;
+        
+        return Array.from({ length: periods }, (_, i) => {
+          const variation = (Math.random() - 0.5) * 0.3; // ±15% variation
+          return {
+            period: range === 'week' ? `Day ${i + 1}` : 
+                   range === 'month' ? `Week ${i + 1}` :
+                   range === 'quarter' ? `Month ${i + 1}` : 
+                   `Month ${i + 1}`,
+            open: Math.round(baseData.open * (1 + variation)),
+            resolved: Math.round(baseData.resolved * (1 + variation)),
+            inProgress: Math.round(baseData.inProgress * (1 + variation)),
+          };
+        });
+      };
+
+      setTrendData(generateTrendData(timeRange));
+
     } catch (err) {
       console.error('Load analytics error:', err);
-      showError('Failed to load analytics data');
+      showError('Failed to load analytics data. Please try again.');
+      
+      // Set fallback data
+      setStats({
+        overall: { total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0 },
+        byStatus: {},
+        byPriority: {},
+        byCategory: [],
+      });
+      setCategoryStats([]);
+      setTrendData([]);
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, [showError, timeRange]);
 
   useEffect(() => {
     loadAnalytics();

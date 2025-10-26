@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import issueService from '../services/issueService';
 import categoryService from '../services/categoryService';
+import dataService from '../services/dataService';
 import IssueCard from '../components/IssueCard';
 import IssueFilters from '../components/IssueFilters';
 import IssueDetailModal from '../components/IssueDetailModal';
@@ -63,21 +64,42 @@ const IssueList = () => {
 
       console.log('📋 Loading issues with params:', params);
 
-      const response = await issueService.getIssues(params);
+      // Use dataService for better caching and error handling
+      const response = await dataService.getIssues(params);
       
       console.log('📋 Issues response:', {
+        success: response.success,
         dataLength: response.data?.length,
         pagination: response.pagination,
         firstIssue: response.data?.[0]
       });
 
-      setIssues(response.data || []);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0,
-        page: response.pagination?.page || prev.page,
-      }));
+      if (response.success) {
+        setIssues(response.data || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.pagination?.total || 0,
+          totalPages: response.pagination?.totalPages || 0,
+          page: response.pagination?.page || prev.page,
+        }));
+      } else {
+        console.warn('Failed to load issues:', response.message);
+        // Fallback to issueService
+        try {
+          const fallbackResponse = await issueService.getIssues(params);
+          setIssues(fallbackResponse.data || []);
+          setPagination((prev) => ({
+            ...prev,
+            total: fallbackResponse.pagination?.total || 0,
+            totalPages: fallbackResponse.pagination?.totalPages || 0,
+            page: fallbackResponse.pagination?.page || prev.page,
+          }));
+        } catch (fallbackError) {
+          console.error('❌ Fallback load issues error:', fallbackError);
+          showError(fallbackError.message || 'Failed to load issues');
+          setIssues([]);
+        }
+      }
     } catch (error) {
       console.error('❌ Load issues error:', error);
       showError(error.message || 'Failed to load issues');
@@ -93,8 +115,19 @@ const IssueList = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await categoryService.getCategories();
-      setCategories(response.data || []);
+      const response = await dataService.getCategories({ isActive: true });
+      if (response.success) {
+        setCategories(response.data || []);
+      } else {
+        console.warn('Failed to load categories via dataService:', response.message);
+        // Fallback to categoryService
+        try {
+          const fallbackResponse = await categoryService.getCategories();
+          setCategories(fallbackResponse.data || []);
+        } catch (fallbackError) {
+          console.error('Load categories error:', fallbackError);
+        }
+      }
     } catch (error) {
       console.error('Load categories error:', error);
     }
@@ -120,8 +153,14 @@ const IssueList = () => {
     if (selectedIssue) {
       // Reload selected issue to get updated data
       try {
-        const response = await issueService.getIssueById(selectedIssue._id);
-        setSelectedIssue(response.data);
+        const response = await dataService.getIssueById(selectedIssue._id);
+        if (response.success) {
+          setSelectedIssue(response.data);
+        } else {
+          // Fallback to issueService
+          const fallbackResponse = await issueService.getIssueById(selectedIssue._id);
+          setSelectedIssue(fallbackResponse.data);
+        }
       } catch (error) {
         console.error('❌ Failed to reload issue:', error);
         setShowIssueModal(false);

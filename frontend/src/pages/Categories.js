@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import categoryService from '../services/categoryService';
+import dataService from '../services/dataService';
 import Modal, { ConfirmDialog } from '../components/Modal';
 import Feedback from '../components/Feedback';
 import Badge from '../components/Badge';
@@ -45,21 +46,36 @@ const Categories = () => {
 
   /**
    * Load categories from service and set state.
-   * categoryService.getCategories() returns { data, pagination, success, message }.
+   * dataService.getCategories() returns { data, pagination, success, message }.
    */
   const loadCategories = useCallback(
     async (params = {}) => {
       try {
         setLoading(true);
         console.log('📋 Loading categories...', params);
-        const response = await categoryService.getCategories(params);
-        // service returns { data: [...], pagination, success, message }
-        const data = response?.data ?? [];
-        console.log('✅ Categories loaded:', {
-          count: Array.isArray(data) ? data.length : 0,
-        });
-        if (mountedRef.current) setCategories(Array.isArray(data) ? data : []);
-        return data;
+        
+        // Use dataService for better caching and consistency
+        const response = await dataService.getCategories(params);
+        
+        if (response.success) {
+          const data = response.data ?? [];
+          console.log('✅ Categories loaded via dataService:', {
+            count: Array.isArray(data) ? data.length : 0,
+          });
+          if (mountedRef.current) setCategories(Array.isArray(data) ? data : []);
+          return data;
+        } else {
+          console.warn('Failed to load categories via dataService:', response.message);
+          
+          // Fallback to categoryService
+          const fallbackResponse = await categoryService.getCategories(params);
+          const data = fallbackResponse?.data ?? [];
+          console.log('✅ Categories loaded via fallback:', {
+            count: Array.isArray(data) ? data.length : 0,
+          });
+          if (mountedRef.current) setCategories(Array.isArray(data) ? data : []);
+          return data;
+        }
       } catch (error) {
         console.error('❌ Load categories error:', error);
         const message =

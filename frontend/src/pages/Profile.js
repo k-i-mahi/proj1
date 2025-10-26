@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import authService from '../services/authService';
+import dataService from '../services/dataService';
 import Modal from '../components/Modal';
 import Feedback from '../components/Feedback';
 import Badge from '../components/Badge';
@@ -59,10 +60,33 @@ const Profile = () => {
 
   const loadUserStats = async () => {
     try {
-      const stats = await authService.getUserStats();
-      setUserStats(stats);
+      // Try dataService first for consistency
+      const response = await dataService.request('GET', '/auth/stats', null, {
+        useCache: true,
+        cacheKey: 'user_stats_profile'
+      });
+      
+      if (response.success) {
+        setUserStats(response.data);
+      } else {
+        console.warn('Failed to load stats via dataService:', response.message);
+        // Fallback to authService
+        try {
+          const stats = await authService.getUserStats();
+          setUserStats(stats);
+        } catch (fallbackError) {
+          console.error('Fallback load stats error:', fallbackError);
+        }
+      }
     } catch (error) {
       console.error('Load stats error:', error);
+      // Try fallback
+      try {
+        const stats = await authService.getUserStats();
+        setUserStats(stats);
+      } catch (fallbackError) {
+        console.error('Fallback load stats error:', fallbackError);
+      }
     }
   };
 
