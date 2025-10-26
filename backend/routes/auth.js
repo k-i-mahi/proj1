@@ -12,6 +12,8 @@ const {
   logout,
   refreshToken,
   getUserStats,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
 
 const router = express.Router();
@@ -163,5 +165,38 @@ router.post('/refresh', protect, asyncHandler(refreshToken));
 // @desc    Get user statistics
 // @access  Private
 router.get('/stats', protect, asyncHandler(getUserStats));
+
+// @route   POST /api/auth/forgotpassword
+// @desc    Forgot password - verify email and username
+// @access  Public
+router.post(
+  '/forgotpassword',
+  [
+    body('email')
+      .isEmail()
+      .withMessage('Please enter a valid email')
+      .normalizeEmail(),
+    body('username')
+      .trim()
+      .notEmpty()
+      .withMessage('Username is required'),
+  ],
+  validate,
+  asyncHandler(forgotPassword)
+);
+
+// @route   POST /api/auth/resetpassword/:token
+// @desc    Reset password with token
+// @access  Public
+router.post(
+  '/resetpassword/:token',
+  [
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long'),
+  ],
+  validate,
+  asyncHandler(resetPassword)
+);
 
 module.exports = router;

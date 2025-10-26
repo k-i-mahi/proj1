@@ -645,16 +645,49 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// @desc    Forgot password (for future implementation)
+// @desc    Forgot password - verify email and username
 // @route   POST /api/auth/forgot-password
 // @access  Public
 const forgotPassword = async (req, res) => {
   try {
-    // TODO: Implement forgot password
+    const { email, username } = req.body;
+
+    // Validate input
+    if (!email || !username) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and username are required',
+      });
+    }
+
+    // Find user by email and name (username)
+    const user = await User.findOne({ 
+      email: email.toLowerCase(),
+      name: username.trim()
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with the provided email and username combination',
+      });
+    }
+
+    // Generate reset token (simple approach - in production, use crypto.randomBytes)
+    const resetToken = Math.random().toString(36).substring(2, 15) + 
+                      Math.random().toString(36).substring(2, 15);
+    
+    // Store reset token and expiration (24 hours)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    await user.save();
+
     res.json({
       success: true,
-      message: 'Forgot password not yet implemented',
+      message: 'Email and username verified. You can now reset your password.',
+      resetToken: resetToken, // In production, this would be sent via email
     });
+
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
@@ -664,16 +697,57 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// @desc    Reset password (for future implementation)
+// @desc    Reset password with token
 // @route   POST /api/auth/reset-password/:token
 // @access  Public
 const resetPassword = async (req, res) => {
   try {
-    // TODO: Implement reset password
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Validate input
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password is required',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset token',
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    
+    // Clear reset token fields
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    await user.save();
+
     res.json({
       success: true,
-      message: 'Reset password not yet implemented',
+      message: 'Password reset successful. You can now login with your new password.',
     });
+
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({

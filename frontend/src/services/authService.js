@@ -246,12 +246,14 @@ const authService = {
   /**
    * Forgot password - Request reset
    * @param {string} email - User email
+   * @param {string} username - User username
    * @returns {Promise}
    */
-  forgotPassword: async (email) => {
+  forgotPassword: async (email, username) => {
     try {
       const response = await api.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
         email,
+        username,
       });
       return response.data;
     } catch (error) {
