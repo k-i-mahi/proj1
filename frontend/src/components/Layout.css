@@ -20,6 +20,13 @@
   margin-top: 0;
 }
 
+/* Special handling for full-screen pages like map */
+.main-content.map-view {
+  margin-top: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+
 /* Ensure consistent spacing */
 @media (max-width: 768px) {
   .main-content.with-navbar {

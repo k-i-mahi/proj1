@@ -13,7 +13,10 @@ const Layout = ({ children }) => {
   const authOnlyNavbarRoutes = ['/login', '/register'];
   
   // Routes where Footer should NOT be shown
-  const noFooterRoutes = ['/login', '/register'];
+  const noFooterRoutes = ['/login', '/register', '/map'];
+  
+  // Routes that need special full-screen handling
+  const fullScreenRoutes = ['/map'];
 
   // Show navbar if:
   // 1. User is authenticated, OR
@@ -22,11 +25,20 @@ const Layout = ({ children }) => {
   
   // Show footer if not on no-footer routes
   const showFooter = !noFooterRoutes.includes(location.pathname);
+  
+  // Check if current route needs full-screen treatment
+  const isFullScreen = fullScreenRoutes.includes(location.pathname);
 
   return (
     <div className="app-layout">
       {showNavbar && <Navbar />}
-      <main className={`main-content ${showNavbar ? 'with-navbar' : 'full-height'}`}>
+      <main className={`main-content ${
+        isFullScreen 
+          ? 'map-view' 
+          : showNavbar 
+            ? 'with-navbar' 
+            : 'full-height'
+      }`}>
         {children}
       </main>
       {showFooter && <Footer />}
