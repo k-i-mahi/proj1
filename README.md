@@ -1,450 +1,195 @@
-# 🏙️ Civita - Community Issue Management Platform# Civita - MERN Stack Application
+<div align="center">
 
+<img src="apps/web/public/favicon.svg" width="72" alt="Civita logo" />
 
+# Civita
 
-[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)A full-stack web application built with MongoDB, Express.js, React, and Node.js.
+**Report local problems. Rally your neighbours. Watch them get fixed, live.**
 
-[![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
+A full-stack civic issue tracker. Residents pin potholes, broken streetlights and
+waterlogging on a map; authorities triage, assign and resolve them on a real-time board.
 
-[![MongoDB](https://img.shields.io/badge/MongoDB-6.x-green.svg)](https://mongodb.com/)## Project Structure
+[![CI](https://github.com/k-i-mahi/proj1/actions/workflows/ci.yml/badge.svg)](https://github.com/k-i-mahi/proj1/actions/workflows/ci.yml)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)
+![Node](https://img.shields.io/badge/Node.js-Express%205-339933?logo=nodedotjs&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47a248?logo=mongodb&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[![Express](https://img.shields.io/badge/Express-4.x-lightgrey.svg)](https://expressjs.com/)
+<img src="docs/screenshots/explore.png" alt="Civita issue feed" width="100%" />
 
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)```
+</div>
 
+## Highlights
+
+- **Map-first reporting.** A four-step report flow with a vector map picker, place search, GPS and automatic reverse geocoding. Photos are compressed in the browser before upload.
+- **Real-time everything.** Comments, upvotes, status changes and notifications are pushed over Socket.IO, using per-issue rooms and a staff-only room for internal notes.
+- **Authority tooling.** A drag-and-drop kanban triage board, assignment to staff, public status notes, internal notes, and an analytics dashboard.
+- **Production-grade auth.** 15-minute JWT access tokens are kept in memory, and rotating refresh tokens are stored hashed in an httpOnly cookie, with reuse detection that revokes the whole session family. Password reset uses single-use hashed tokens, and responses never reveal whether an account exists.
+- **One schema, both sides.** Zod schemas in a shared package validate API input, drive the React forms, and generate the OpenAPI docs.
+- **Tested end to end.** 61 API integration tests (real MongoDB in memory), web unit tests, and 16 Playwright E2E tests, including a two-browser realtime test. All run in CI.
+
+## Screenshots
+
+| Report an issue                                                             | Live map                                                                          |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/report.png" alt="Report flow" />                 | <img src="docs/screenshots/map.png" alt="Map with clustered issues" />            |
+| **Issue page with staff triage**                                            | **Triage board**                                                                  |
+| <img src="docs/screenshots/issue.png" alt="Issue detail" />                 | <img src="docs/screenshots/triage.png" alt="Kanban triage board" />               |
+| **Analytics (dark mode)**                                                   | **Mobile**                                                                        |
+| <img src="docs/screenshots/analytics-dark.png" alt="Analytics dashboard" /> | <img src="docs/screenshots/mobile-explore.png" alt="Mobile layout" width="260" /> |
+
+<details>
+<summary>Landing page</summary>
+<img src="docs/screenshots/landing.png" alt="Landing page" />
+</details>
+
+## Tech stack
+
+| Layer    | Technology                                                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend | React 19, Vite, TypeScript, React Router, TanStack Query, Tailwind CSS v4, Radix UI (shadcn-style components), React Hook Form, Motion, MapLibre GL, Recharts, dnd-kit, cmdk |
+| Backend  | Node.js, Express 5, TypeScript, Mongoose, Socket.IO, Zod, JWT, bcrypt, Multer (+ Cloudinary), Pino, Helmet, rate limiting                                                    |
+| Database | MongoDB with GeoJSON `2dsphere` indexes and TTL indexes for sessions, reset tokens and notifications                                                                         |
+| Shared   | `@civita/shared`: Zod schemas, DTO types and constants used by both apps                                                                                                     |
+| Quality  | Vitest, Supertest, mongodb-memory-server, Testing Library, Playwright, ESLint, Prettier                                                                                      |
+| DevOps   | npm workspaces monorepo, Docker multi-stage builds, docker-compose, nginx, GitHub Actions                                                                                    |
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI[React SPA<br/>TanStack Query cache]
+  end
+  subgraph Server[Node.js API]
+    R[Express routes<br/>Zod validation] --> S[Services]
+    S --> M[(MongoDB)]
+    S --> IO[Socket.IO hub]
+  end
+  UI -- REST + Bearer token --> R
+  UI -- httpOnly refresh cookie --> R
+  IO -- issue & user rooms --> UI
+  S -- images --> C[(Cloudinary / disk)]
+  S -- geocoding --> N[OpenStreetMap Nominatim]
+```
+
+```text
 civita/
-
-A modern, full-stack web application for community-driven issue reporting and management. Built with the MERN stack (MongoDB, Express.js, React, Node.js), Civita empowers residents to report local issues while providing authorities with tools to track and resolve them efficiently.├── backend/                 # Backend server
-
-│   ├── models/             # MongoDB models
-
-![Civita Dashboard](https://via.placeholder.com/800x400/667eea/ffffff?text=Civita+Dashboard)│   ├── routes/             # API routes
-
-│   ├── controllers/        # Route controllers
-
-## ✨ Features│   ├── middleware/         # Custom middleware
-
-│   ├── config/             # Database configuration
-
-### 🏠 **For Residents**│   └── server.js           # Server entry point
-
-- **Issue Reporting**: Report community issues with photos, location, and detailed descriptions├── frontend/               # React frontend
-
-- **Interactive Map**: View issues on an interactive map with real-time updates│   ├── public/             # Static files
-
-- **Issue Tracking**: Follow the progress of reported issues from submission to resolution│   ├── src/
-
-- **Community Engagement**: Vote, comment, and follow issues that matter to you│   │   ├── components/     # Reusable components
-
-- **Mobile Responsive**: Fully responsive design for all devices│   │   ├── pages/          # Page components
-
-│   │   ├── services/       # API services
-
-### 🏛️ **For Authorities**│   │   ├── context/        # React context
-
-- **Issue Management**: Assign, update status, and manage community issues│   │   └── App.js          # Main App component
-
-- **Analytics Dashboard**: Comprehensive analytics and reporting tools│   └── package.json
-
-- **Category Management**: Organize issues by categories (Roads, Utilities, Safety, etc.)└── package.json            # Root package.json
-
-- **User Management**: Manage residents and authority accounts```
-
-- **Real-time Notifications**: Stay updated on new issues and community feedback
-
-## Getting Started
-
-### 🔐 **Security & Authentication**
-
-- **JWT Authentication**: Secure token-based authentication### Prerequisites
-
-- **Role-based Access Control**: Different permissions for residents, authorities, and admins- Node.js (v14 or higher)
-
-- **Password Reset**: Secure forgot password functionality with email/username verification- MongoDB
-
-- **Rate Limiting**: API rate limiting to prevent abuse- npm or yarn
-
-- **Input Validation**: Comprehensive server-side and client-side validation
-
-### Installation
-
-## 🛠️ Tech Stack
-
-1. Clone the repository
-
-### **Frontend**2. Install dependencies:
-
-- **React 18.x** - Modern UI library with hooks   ```bash
-
-- **React Router 6** - Client-side routing   npm run install-all
-
-- **Axios** - HTTP client for API communication   ```
-
-- **Leaflet** - Interactive maps
-
-- **Context API** - State management3. Create environment files:
-
-- **CSS3** - Modern styling with animations   - Copy `backend/.env.example` to `backend/.env`
-
-   - Update the environment variables
-
-### **Backend**
-
-- **Node.js** - JavaScript runtime4. Start the development servers:
-
-- **Express.js** - Web application framework   ```bash
-
-- **MongoDB** - NoSQL database   npm run dev
-
-- **Mongoose** - MongoDB object modeling   ```
-
-- **JWT** - JSON Web Tokens for authentication
-
-- **Bcrypt** - Password hashingThis will start both the backend server (port 5000) and frontend development server (port 3000).
-
-- **Multer** - File upload handling
-
-- **Helmet** - Security middleware## Available Scripts
-
-
-
-### **Development & Deployment**- `npm run dev` - Start both backend and frontend in development mode
-
-- **Git** - Version control- `npm run server` - Start only the backend server
-
-- **ESLint** - Code linting- `npm run client` - Start only the frontend
-
-- **Prettier** - Code formatting- `npm run build` - Build the frontend for production
-
-- **Nodemon** - Development server auto-restart
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js** (v18.x or higher)
-- **MongoDB** (v6.x or higher)
-- **Git**
-- **npm** or **yarn**
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/k-i-mahi/proj1.git
-   cd proj1
-   ```
-
-2. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. **Environment Configuration**
-   
-   Create `.env` files in both `backend` and `frontend` directories:
-
-   **Backend (.env)**
-   ```env
-   # Database
-   MONGODB_URI=mongodb://localhost:27017/civita
-   
-   # JWT Configuration
-   JWT_SECRET=your_super_secure_jwt_secret_key
-   JWT_EXPIRE=7d
-   
-   # Session Configuration (if using sessions)
-   SESSION_SECRET=your_session_secret_key
-   
-   # Server Configuration
-   NODE_ENV=development
-   PORT=5000
-   HOST=0.0.0.0
-   
-   # Frontend URL
-   FRONTEND_URL=http://localhost:3000
-   
-   # File Upload (Optional - Cloudinary)
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   ```
-
-   **Frontend (.env)**
-   ```env
-   REACT_APP_API_URL=http://localhost:5000/api
-   REACT_APP_MAP_API_KEY=your_map_api_key
-   ```
-
-5. **Database Setup**
-   
-   Start MongoDB and seed the database:
-   ```bash
-   # In backend directory
-   node scripts/seedDatabase.js
-   ```
-
-6. **Start the Application**
-   
-   Open two terminals:
-   
-   **Terminal 1 - Backend**
-   ```bash
-   cd backend
-   npm start
-   ```
-   
-   **Terminal 2 - Frontend**
-   ```bash
-   cd frontend
-   npm start
-   ```
-
-7. **Access the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
-   - API Health Check: http://localhost:5000/health
-
-## 📁 Project Structure
-
-```
-proj1/
-├── backend/                 # Backend server
-│   ├── config/             # Database and configuration
-│   ├── controllers/        # Route controllers
-│   ├── middleware/         # Custom middleware
-│   ├── models/            # MongoDB models
-│   ├── routes/            # API routes
-│   ├── scripts/           # Database scripts
-│   ├── uploads/           # File uploads directory
-│   ├── utils/             # Utility functions
-│   ├── .env               # Environment variables
-│   ├── server.js          # Main server file
-│   └── package.json       # Backend dependencies
-│
-├── frontend/               # React frontend
-│   ├── public/            # Static files
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── config/        # Configuration files
-│   │   ├── context/       # React Context providers
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── pages/         # Page components
-│   │   ├── services/      # API services
-│   │   ├── utils/         # Utility functions
-│   │   ├── App.js         # Main App component
-│   │   └── index.js       # Entry point
-│   ├── .env               # Environment variables
-│   └── package.json       # Frontend dependencies
-│
-├── README.md              # Project documentation
-└── .gitignore            # Git ignore rules
+├── apps/
+│   ├── api/            Express API: modules/{auth,issues,comments,users,...}, models, tests
+│   └── web/            React app: pages, components/ui (design system), hooks, e2e tests
+├── packages/
+│   └── shared/         Zod schemas, types, constants shared by both apps
+├── docs/               Rebuild plan and screenshots
+└── docker-compose.yml  MongoDB + API + nginx-served web app
 ```
 
-## 🔑 API Endpoints
+**Data model notes.** Votes, follows and comments live in their own collections with
+unique compound indexes, not in unbounded arrays inside the issue document. Issues keep
+denormalised counters updated with atomic `$inc`, which keeps documents small and
+counts correct under concurrency. Every status or assignment change is written to an
+`IssueEvent` timeline.
 
-### **Authentication**
-```
-POST   /api/auth/register        # User registration
-POST   /api/auth/login           # User login
-GET    /api/auth/me              # Get current user
-PUT    /api/auth/updateprofile   # Update user profile
-PUT    /api/auth/updatepassword  # Change password
-POST   /api/auth/forgotpassword  # Request password reset
-POST   /api/auth/resetpassword   # Reset password
-POST   /api/auth/logout          # User logout
-```
+## Getting started
 
-### **Issues**
-```
-GET    /api/issues               # Get all issues
-POST   /api/issues               # Create new issue
-GET    /api/issues/:id           # Get single issue
-PUT    /api/issues/:id           # Update issue
-DELETE /api/issues/:id           # Delete issue
-GET    /api/issues/nearby        # Get nearby issues
-```
+**Requirements:** Node.js 20.19+ and npm. MongoDB is optional; see step 2.
 
-### **Interactions**
-```
-POST   /api/interactions/issues/:id/vote      # Vote on issue
-POST   /api/interactions/issues/:id/comment   # Comment on issue
-POST   /api/interactions/issues/:id/follow    # Follow issue
-GET    /api/interactions/issues/:id/stats     # Get issue stats
-```
-
-### **Categories**
-```
-GET    /api/categories           # Get all categories
-POST   /api/categories           # Create category (admin)
-PUT    /api/categories/:id       # Update category (admin)
-DELETE /api/categories/:id       # Delete category (admin)
-```
-
-### **Users**
-```
-GET    /api/users                # Get all users (admin)
-GET    /api/users/:id            # Get user profile
-PUT    /api/users/:id            # Update user (admin)
-DELETE /api/users/:id            # Delete user (admin)
-```
-
-## 👥 User Roles
-
-### **Resident**
-- Report issues
-- Vote and comment on issues
-- Follow issue updates
-- View public analytics
-
-### **Authority**
-- All resident permissions
-- Manage assigned issues
-- Update issue status
-- Access detailed analytics
-- Assign issues to other authorities
-
-### **Admin**
-- All authority permissions
-- User management
-- Category management
-- System configuration
-- Full analytics access
-
-## 🧪 Testing
-
-### **API Testing**
-Use the provided endpoints or test manually:
 ```bash
-# Health check
-curl http://localhost:5000/health
+git clone https://github.com/k-i-mahi/proj1.git civita && cd civita
+npm install
 
-# Login
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "john.smith@email.com", "password": "password123"}'
+# 1. Start MongoDB. Pick one:
+npm run dev:db              # zero-install local MongoDB (downloads a binary once)
+# or: docker run -d -p 27017:27017 mongo:8
+
+# 2. Load demo data (Khulna, Bangladesh)
+npm run seed
+
+# 3. Run the API (http://localhost:4000) and web app (http://localhost:5173)
+npm run dev
 ```
 
-### **Default Test Accounts**
-After seeding the database:
-- **Admin**: admin@civita.com / password123
-- **Authority**: sarah.johnson@email.com / password123
-- **Resident**: john.smith@email.com / password123
+Demo accounts (password `Password123`), also available as one-click buttons on the sign-in page:
 
-## 🚀 Deployment
+| Role      | Email                  |
+| --------- | ---------------------- |
+| Resident  | `resident@civita.dev`  |
+| Authority | `authority@civita.dev` |
+| Admin     | `admin@civita.dev`     |
 
-### **Environment Setup**
-1. Set `NODE_ENV=production` in backend
-2. Update MongoDB URI for production database
-3. Configure proper JWT secrets
-4. Set up HTTPS certificates
-5. Configure reverse proxy (Nginx recommended)
+Configuration is optional in development. See [`apps/api/.env.example`](apps/api/.env.example)
+for every setting (Cloudinary, SMTP, cookies, CORS).
 
-### **Cloud Deployment**
-- **Frontend**: Deploy to Vercel, Netlify, or AWS S3
-- **Backend**: Deploy to Heroku, DigitalOcean, or AWS EC2
-- **Database**: MongoDB Atlas or self-hosted MongoDB
+### With Docker
 
-## 🔧 Configuration
-
-### **Database Seeding**
-The project includes a database seeding script:
 ```bash
-cd backend
-node scripts/seedDatabase.js
+docker compose up --build -d
+docker compose exec api node dist/seed.js --force
+# open http://localhost:8080 (set WEB_PORT to change it)
 ```
 
-This creates:
-- Sample users (admin, authority, residents)
-- Issue categories
-- Sample issues with interactions
-- Location data
+## API
 
-### **File Uploads**
-Configure file uploads using either:
-- **Local storage**: Files stored in `backend/uploads/`
-- **Cloudinary**: Cloud-based image management
+Interactive OpenAPI documentation, generated from the shared Zod schemas, is served at
+**`/api/docs`** (raw spec at `/api/openapi.json`). All endpoints are versioned under `/api/v1`.
 
-### **Maps Integration**
-- Uses Leaflet for interactive maps
-- Supports custom map tiles
-- Geolocation for automatic positioning
+| Area     | Endpoints                                                                                                                                                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth     | `POST /auth/register` `login` `refresh` `logout` `forgot-password` `reset-password` `change-password`, `GET /auth/me`                                                                                                                                          |
+| Issues   | `GET /issues` (search, filters, sort by newest/top/nearest, radius), `GET /issues/map`, `POST /issues`, `GET/PATCH/DELETE /issues/:id`, `PATCH /issues/:id/triage`, `PUT/DELETE /issues/:id/vote`, `PUT/DELETE /issues/:id/follow`, `GET /issues/:id/timeline` |
+| Comments | `GET/POST /issues/:id/comments`, `DELETE /comments/:id`                                                                                                                                                                                                        |
+| Other    | `categories`, `users`, `notifications`, `analytics/overview`, `stats`, `uploads/images`, `geo/reverse`, `geo/search`                                                                                                                                           |
 
-## 🤝 Contributing
+Errors always have the same shape:
 
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add amazing feature'
-   ```
-4. **Push to the branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. **Open a Pull Request**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Some fields are invalid",
+    "details": { "title": ["Use at least 8 characters"] },
+    "requestId": "…"
+  }
+}
+```
 
-### **Development Guidelines**
-- Follow existing code style
-- Add comments for complex logic
-- Write tests for new features
-- Update documentation
-- Ensure responsive design
+## Testing
 
-## 🐛 Known Issues
+```bash
+npm test            # API integration tests + web unit tests
+npm run test:e2e    # Playwright (needs the API, web app and seeded DB)
+npm run lint && npm run typecheck
+```
 
-- [ ] File upload size limit (10MB default)
-- [ ] Map tiles may load slowly on poor connections
-- [ ] Session cleanup needs periodic maintenance
+CI runs formatting, linting, type-checking, all tests, production builds, the Playwright
+suite against a MongoDB service, and the Docker image builds on every push.
 
-## 📝 Changelog
+## Security
 
-### **v1.0.0** (Current)
-- Initial release
-- User authentication and authorization
-- Issue reporting and management
-- Interactive maps
-- Real-time notifications
-- Analytics dashboard
-- Responsive design
-- Forgot password functionality
+- Access tokens live only in memory. Refresh tokens are opaque, stored as SHA-256 hashes, rotated on every use, and scoped to `/api/v1/auth` in an httpOnly, SameSite cookie. Replaying a used token revokes all of that user's sessions.
+- Role and active status are re-checked on every request, so demotions and bans take effect immediately.
+- All input passes through strict Zod schemas, which also blocks NoSQL operator injection. Regex search input is escaped.
+- Uploads are validated by magic bytes, not file extension or MIME type. Size limits and upload rate limits apply.
+- Helmet security headers, an explicit CORS allow-list, request IDs, redacted auth headers in logs, and rate limits on auth endpoints.
+- Login timing is equalised for unknown emails, and password reset never discloses whether an account exists.
 
-## 📧 Support
+## Deployment
 
-For support and questions:
-- **Issues**: [GitHub Issues](https://github.com/k-i-mahi/proj1/issues)
-- **Email**: support@civita.com
+The API is a single bundled Node.js process (`npm run build -w @civita/api`, then `node dist/server.js`),
+and the web app is static files (`npm run build -w @civita/web`). Typical free-tier setup:
 
-## 📄 License
+1. **Database:** MongoDB Atlas.
+2. **API:** Render or Railway. Set `MONGODB_URI`, `JWT_ACCESS_SECRET`, `WEB_ORIGIN`, `API_PUBLIC_URL`, `TRUST_PROXY=1`, and `CLOUDINARY_URL` for persistent images.
+3. **Web:** Vercel or Netlify. Either proxy `/api`, `/uploads` and `/socket.io` to the API (recommended, same-origin cookies), or set `VITE_API_URL` and use `COOKIE_SAMESITE=none` on the API.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Background
 
-## 🙏 Acknowledgments
+Civita began as a university web-programming project. Version 2 is a ground-up rewrite
+that fixes its security issues (the original password reset could be used to take over
+accounts), replaces polling with WebSockets, moves to TypeScript and a tested layered
+architecture, and redesigns the interface. The reasoning is in [`docs/PLAN.md`](docs/PLAN.md).
 
-- **Leaflet** for interactive maps
-- **MongoDB** for flexible data storage
-- **React** community for excellent documentation
-- **Express.js** for robust backend framework
-- All contributors and community members
+## License
 
----
-
-**Made with ❤️ by [Khadimul Islam Mahi](https://github.com/k-i-mahi)**
-
----
-
-## 📈 Project Status
-
-🟢 **Active Development** - This project is actively maintained and new features are being added regularly.
-
-**Last Updated**: October 26, 2025
+[MIT](LICENSE) © mahi
