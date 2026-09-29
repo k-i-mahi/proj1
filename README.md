@@ -129,6 +129,15 @@ docker compose exec api node dist/seed.js --force
 # open http://localhost:8080 (set WEB_PORT to change it)
 ```
 
+### From published images
+
+Every release publishes Docker images to GitHub Packages:
+
+```bash
+docker pull ghcr.io/k-i-mahi/civita-api:latest
+docker pull ghcr.io/k-i-mahi/civita-web:latest
+```
+
 ## API
 
 Interactive OpenAPI documentation, generated from the shared Zod schemas, is served at
