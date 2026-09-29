@@ -1,0 +1,258 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/geist';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Components only ever reference these semantic names, so the
+ * whole app re-themes from this one block.
+ */
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(0.99 0.002 286);
+  --foreground: oklch(0.21 0.02 286);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.51 0.23 277);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.967 0.004 286);
+  --secondary-foreground: oklch(0.25 0.02 286);
+  --muted: oklch(0.967 0.004 286);
+  --muted-foreground: oklch(0.52 0.016 286);
+  --accent: oklch(0.955 0.02 280);
+  --accent-foreground: oklch(0.3 0.08 277);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.6 0.15 155);
+  --warning: oklch(0.75 0.16 70);
+  --border: oklch(0.92 0.006 286);
+  --input: oklch(0.9 0.006 286);
+  --ring: oklch(0.51 0.23 277 / 0.45);
+  --sidebar: oklch(0.985 0.002 286);
+
+  --status-open: oklch(0.62 0.19 255);
+  --status-progress: oklch(0.72 0.16 65);
+  --status-resolved: oklch(0.62 0.16 155);
+  --status-closed: oklch(0.55 0.02 286);
+  --status-rejected: oklch(0.6 0.2 25);
+
+  /* Chart series: validated categorical slots (light surface). */
+  --chart-1: #2a78d6;
+  --chart-2: #1baf7a;
+  --chart-grid: oklch(0.92 0.006 286);
+}
+
+.dark {
+  --background: oklch(0.155 0.008 286);
+  --foreground: oklch(0.97 0.004 286);
+  --card: oklch(0.19 0.009 286);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.2 0.01 286);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.62 0.2 277);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.25 0.01 286);
+  --secondary-foreground: oklch(0.95 0.004 286);
+  --muted: oklch(0.24 0.01 286);
+  --muted-foreground: oklch(0.7 0.014 286);
+  --accent: oklch(0.27 0.04 280);
+  --accent-foreground: oklch(0.92 0.04 277);
+  --destructive: oklch(0.65 0.2 25);
+  --border: oklch(1 0 0 / 0.09);
+  --input: oklch(1 0 0 / 0.13);
+  --ring: oklch(0.62 0.2 277 / 0.5);
+  --sidebar: oklch(0.17 0.008 286);
+
+  --chart-1: #3987e5;
+  --chart-2: #199e70;
+  --chart-grid: oklch(1 0 0 / 0.08);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Geist Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+
+  --color-status-open: var(--status-open);
+  --color-status-progress: var(--status-progress);
+  --color-status-resolved: var(--status-resolved);
+  --color-status-closed: var(--status-closed);
+  --color-status-rejected: var(--status-rejected);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply scroll-smooth antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  body {
+    @apply bg-background text-foreground min-h-dvh font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    @apply bg-primary/20;
+  }
+}
+
+@layer utilities {
+  /* Subtle dotted grid used behind hero sections. */
+  .bg-grid {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--foreground) 12%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      120deg,
+      var(--primary),
+      oklch(0.6 0.22 305),
+      oklch(0.65 0.2 350)
+    );
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+/* MapLibre controls, restyled to match the app. */
+.maplibregl-ctrl-group {
+  @apply !border-border !bg-card !rounded-lg !border !shadow-sm;
+}
+.maplibregl-ctrl-group button + button {
+  @apply !border-border;
+}
+.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+.maplibregl-ctrl-attrib {
+  @apply !bg-background/70 !text-[10px] backdrop-blur;
+}
+.dark .maplibregl-ctrl-attrib,
+.dark .maplibregl-ctrl-attrib a {
+  @apply !text-muted-foreground;
+}
+.maplibregl-popup-content {
+  @apply !bg-popover !text-popover-foreground !border-border !rounded-xl !border !p-0 !shadow-xl;
+}
+.maplibregl-popup-tip {
+  @apply !border-t-popover !border-b-popover;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+  }
+}
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
