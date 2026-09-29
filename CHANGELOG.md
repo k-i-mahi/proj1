@@ -39,5 +39,5 @@ A ground-up rewrite of Civita as a TypeScript monorepo.
 
 - Original university project (Create React App + Express, JavaScript).
 
-[2.0.0]: https://github.com/k-i-mahi/proj1/compare/d7ca7cf...v2.0.0
-[1.0.0]: https://github.com/k-i-mahi/proj1/tree/legacy-v1
+[2.0.0]: https://github.com/k-i-mahi/civita-web-programming/compare/d7ca7cf...v2.0.0
+[1.0.0]: https://github.com/k-i-mahi/civita-web-programming/tree/legacy-v1

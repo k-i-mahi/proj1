@@ -9,7 +9,7 @@
 A full-stack civic issue tracker. Residents pin potholes, broken streetlights and
 waterlogging on a map; authorities triage, assign and resolve them on a real-time board.
 
-[![CI](https://github.com/k-i-mahi/proj1/actions/workflows/ci.yml/badge.svg)](https://github.com/k-i-mahi/proj1/actions/workflows/ci.yml)
+[![CI](https://github.com/k-i-mahi/civita-web-programming/actions/workflows/ci.yml/badge.svg)](https://github.com/k-i-mahi/civita-web-programming/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)
 ![Node](https://img.shields.io/badge/Node.js-Express%205-339933?logo=nodedotjs&logoColor=white)
@@ -96,7 +96,7 @@ counts correct under concurrency. Every status or assignment change is written t
 **Requirements:** Node.js 20.19+ and npm. MongoDB is optional; see step 2.
 
 ```bash
-git clone https://github.com/k-i-mahi/proj1.git civita && cd civita
+git clone https://github.com/k-i-mahi/civita-web-programming.git && cd civita-web-programming
 npm install
 
 # 1. Start MongoDB. Pick one:

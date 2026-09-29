@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please do not open a public issue for security problems. Instead, use
-[GitHub's private vulnerability reporting](https://github.com/k-i-mahi/proj1/security/advisories/new)
+[GitHub's private vulnerability reporting](https://github.com/k-i-mahi/civita-web-programming/security/advisories/new)
 with steps to reproduce and the impact you observed. You can expect a reply within a
 few days.
 

@@ -24,7 +24,7 @@ import { useIssuePage, usePublicStats } from '@/hooks/queries';
 import { cn, formatHours, timeAgo } from '@/lib/utils';
 import { useAuth } from '@/providers/auth';
 
-const REPO_URL = 'https://github.com/k-i-mahi/proj1';
+const REPO_URL = 'https://github.com/k-i-mahi/civita-web-programming';
 
 const GithubMark = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 16 16" fill="currentColor" className={className} aria-hidden>
