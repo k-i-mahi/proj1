@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/coverage
+**/.env
+apps/api/.mongo-data
+apps/api/uploads
+apps/web/test-results
+apps/web/playwright-report
+.git
+docs/screenshots
